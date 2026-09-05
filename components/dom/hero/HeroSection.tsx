@@ -105,18 +105,12 @@ export default function HeroSection() {
     setTimeout(() => setScreenShake(false), 500);
 
     // If breaking in Round 2 (after "Ohhh Nice! Ab taakat lagao Shalini!"),
-    // slide the entire screen down with sound, leading to dark screen & matchstick!
+    // immediately bring down the theatrical curtain in lockstep with the string pull!
     if (isDodgeRound) {
-      setTimeout(() => {
-        soundFx.playSlideTransition();
-        setIsScreenSlidingDown(true);
-
-        // Slide down lasts 1.1s -> then reveal dark atmosphere & matchstick
-        setTimeout(() => {
-          setShowCakeReveal(true);
-          isInteractingRef.current = false;
-        }, 1100);
-      }, 500);
+      soundFx.playSlideTransition();
+      setIsScreenSlidingDown(true);
+      setShowCakeReveal(true);
+      isInteractingRef.current = false;
     } else {
       // Round 1 break: show first broken message
       setTimeout(() => {
@@ -232,7 +226,7 @@ export default function HeroSection() {
     setIsBreaking(false);
     setIsBroken(false);
     setShowSpeechBubble(true);
-    setDodgeMessage('Hehe ab pakad ke dikhao Shalini 😜💨');
+    setDodgeMessage('Is baar thoda aaram se khinchna 🥱');
     soundFx.playBubblePop();
     rawPullY.set(0);
     setParticles([]);
@@ -297,7 +291,11 @@ export default function HeroSection() {
           duration: 1.1,
           ease: [0.32, 0.72, 0, 1], // Cinematic smooth deceleration slide down
         }}
-        className={`relative z-10 flex min-h-screen w-full flex-col items-center justify-start pt-6 overflow-hidden select-none ${
+        style={{
+          display: showCakeReveal ? 'none' : 'flex',
+          willChange: 'transform, opacity',
+        }}
+        className={`relative z-10 min-h-screen w-full flex-col items-center justify-start pt-6 overflow-hidden select-none ${
           showCakeReveal ? 'pointer-events-none' : 'pointer-events-auto'
         }`}
       >
@@ -583,28 +581,17 @@ export default function HeroSection() {
                     {/* Subtle inner highlight */}
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent via-white/10 to-pink-200/20 pointer-events-none" />
 
-                    {/* Header Tag */}
+                    {/* Header Icons */}
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <Zap className="h-4 w-4 text-pink-300 fill-pink-300 animate-bounce" />
-                      <span className="text-[11px] font-extrabold tracking-widest uppercase text-pink-200">
-                        {isDodgeRound ? 'Slippery String Mode 🏃‍♀️💨' : 'Almost there!'}
-                      </span>
                       <PartyPopper className="h-3.5 w-3.5 text-pink-300 animate-pulse" />
                     </div>
 
-                    {/* Bubble Dialogue Message (Solid crisp text, natural vibrant emojis) */}
+                    {/* Bubble Dialogue Message */}
                     <p className="text-base sm:text-lg md:text-xl font-black tracking-wide text-white drop-shadow-sm">
                       {isDodgeRound
-                        ? dodgeMessage || 'Hehe ab pakad ke dikhao Shalini 😜💨'
-                        : '“Jor se khincho Shalini, taakat lagao” 💪💥'}
-                    </p>
-
-                    <p className="mt-2 text-xs sm:text-sm text-pink-200/95 font-medium">
-                      {isDodgeRound
-                        ? dodgeStep < 3
-                          ? 'Try to catch and pull it again!'
-                          : 'You got it! Pull down hard!'
-                        : 'Pull once more with full power!'}
+                        ? dodgeMessage || 'Is baar thoda aaram se khinchna 😪'
+                        : '“Jor se khincho Shalini, taakat lagao” 🤠'}
                     </p>
                   </div>
                 </motion.div>
@@ -635,16 +622,12 @@ export default function HeroSection() {
 
                   <span className="text-sm sm:text-base font-extrabold tracking-wide text-white drop-shadow-xs">
                     {isDodgeRound
-                      ? dodgeStep === 0
+                      ? dodgeStep < 3
                         ? 'Ab khinch ke dikhao 😏'
-                        : dodgeStep === 1
-                        ? 'Right me bhaaga! Pakdo! 🏃‍♀️'
-                        : dodgeStep === 2
-                        ? 'Left me bhaaga! Idhar pakdo! 🏃‍♀️'
                         : 'Pakad liya! Ab khincho zor se! 💥'
                       : pullCount === 0
-                      ? "Isko jor se khincho shalini (●'◡'●)"
-                      : 'Taakat lagao! Pull again 💥'}
+                      ? 'Isko jor se khincho Shalini 🤠'
+                      : 'Taakat lagao! Phir se khincho 💥'}
                   </span>
 
                   <Sparkles className="h-4 w-4 text-pink-200 animate-pulse" />
@@ -659,7 +642,7 @@ export default function HeroSection() {
                 >
                   <div className="rounded-2xl border border-pink-400/50 bg-gradient-to-br from-[#2a0816]/90 via-[#3a081e]/85 to-[#1a040d]/90 px-6 py-4.5 backdrop-blur-md shadow-[0_0_35px_rgba(244,63,94,0.5)]">
                     <p className="text-base sm:text-lg font-black text-white drop-shadow-sm">
-                      💥 Itna jor se nhi khinchna tha Shalini😂
+                      💥 Itna jor se bhi nahi khinchna tha Shalini 😂
                     </p>
                   </div>
 
@@ -669,7 +652,7 @@ export default function HeroSection() {
                       className="flex items-center gap-2 rounded-full border border-pink-400/60 bg-gradient-to-r from-rose-600/35 via-pink-600/35 to-red-600/35 px-5 py-2.5 text-xs sm:text-sm font-bold text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-rose-600/50 hover:border-pink-300 active:scale-95 shadow-[0_0_25px_rgba(244,63,94,0.45)]"
                     >
                       <RotateCcw className="h-3.5 w-3.5 text-pink-200" />
-                      <span>Phir se khinch leti hoo, mera kya hai 😏</span>
+                      <span>Yaha tap karke phir se khinch leti hu, mera kya hai 😏</span>
                     </button>
                   </div>
                 </motion.div>

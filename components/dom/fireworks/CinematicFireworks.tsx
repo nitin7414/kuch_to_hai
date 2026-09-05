@@ -55,6 +55,7 @@ const COLOR_PALETTES = [
 export default function CinematicFireworks() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isWishingActive, setIsWishingActive] = useState<boolean>(false);
+  const [showGifs, setShowGifs] = useState<boolean>(false);
   const [showGroundShockwave, setShowGroundShockwave] = useState<boolean>(false);
   const animFrameRef = useRef<number | null>(null);
 
@@ -62,6 +63,8 @@ export default function CinematicFireworks() {
   const particlesRef = useRef<Particle[]>([]);
   const skyFlashRef = useRef<number>(0);
   const skyFlashColorRef = useRef<string>('#ffffff');
+
+  const MAX_ACTIVE_PARTICLES = 260;
 
   // Main Canvas & Automatic Fireworks Engine (Mounts once & runs continuously)
   useEffect(() => {
@@ -93,9 +96,8 @@ export default function CinematicFireworks() {
       const types: ('peony' | 'willow' | 'ring' | 'crossette')[] = ['peony', 'willow', 'ring', 'crossette'];
       const selectedType = shellType || types[Math.floor(Math.random() * types.length)];
 
-      // Fast, dynamic ascent speed
-      const speed = size === 'large' ? 18.5 + Math.random() * 3 : 16.5 + Math.random() * 2.5;
-      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.18;
+      const speed = size === 'large' ? 18.0 + Math.random() * 2.5 : 16.0 + Math.random() * 2.0;
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.16;
 
       rocketsRef.current.push({
         x: startX,
@@ -117,10 +119,15 @@ export default function CinematicFireworks() {
     // Detonate Firework Shell at apex into dazzling starburst
     const explodeShell = (rocket: Rocket) => {
       const palette = COLOR_PALETTES[Math.floor(Math.random() * COLOR_PALETTES.length)];
-      const count = rocket.size === 'large' ? 110 : rocket.size === 'medium' ? 80 : 55;
+      const count = rocket.size === 'large' ? 70 : rocket.size === 'medium' ? 50 : 35;
+
+      // Particle Budget Management - Prune oldest particles if exceeding limit
+      if (particlesRef.current.length > MAX_ACTIVE_PARTICLES) {
+        particlesRef.current.splice(0, particlesRef.current.length - MAX_ACTIVE_PARTICLES + 30);
+      }
 
       // Sky flash illumination
-      skyFlashRef.current = rocket.size === 'large' ? 0.35 : 0.22;
+      skyFlashRef.current = rocket.size === 'large' ? 0.3 : 0.18;
       skyFlashColorRef.current = rocket.color;
 
       // Audio effects
@@ -128,15 +135,15 @@ export default function CinematicFireworks() {
 
       if (rocket.shellType === 'crossette') {
         setTimeout(() => {
-          soundFx.playFireworkCrackle(rocket.size === 'large' ? 24 : 16);
-        }, 360);
+          soundFx.playFireworkCrackle(rocket.size === 'large' ? 18 : 12);
+        }, 340);
       } else if (rocket.shellType === 'willow') {
         soundFx.playFireworkWillowShimmer();
       }
 
       if (rocket.shellType === 'ring') {
         // Geometric Outer Ring + Inner Bright Star Pistil
-        const ringSpeed = 5.2 + Math.random() * 1.6;
+        const ringSpeed = 4.8 + Math.random() * 1.4;
         for (let i = 0; i < count; i++) {
           const angle = (Math.PI * 2 * i) / count;
           particlesRef.current.push({
@@ -148,59 +155,39 @@ export default function CinematicFireworks() {
             vy: Math.sin(angle) * ringSpeed,
             color: palette[i % palette.length],
             alpha: 1,
-            decay: 0.012 + Math.random() * 0.007,
-            size: 2.4,
-            gravity: 0.042,
-            friction: 0.978,
-            flicker: Math.random() > 0.4,
-          });
-        }
-        // Inner Glowing Core
-        for (let i = 0; i < 18; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const coreSpeed = 1.0 + Math.random() * 2.0;
-          particlesRef.current.push({
-            x: rocket.x,
-            y: rocket.y,
-            px: rocket.x,
-            py: rocket.y,
-            vx: Math.cos(angle) * coreSpeed,
-            vy: Math.sin(angle) * coreSpeed,
-            color: '#ffffff',
-            alpha: 1,
-            decay: 0.02,
+            decay: 0.014 + Math.random() * 0.008,
             size: 2.2,
-            gravity: 0.03,
-            friction: 0.96,
-            flicker: true,
+            gravity: 0.045,
+            friction: 0.976,
+            flicker: Math.random() > 0.4,
           });
         }
       } else if (rocket.shellType === 'willow') {
         // Grand Golden Willow / Brocade Waterfall with Long Trails
-        for (let i = 0; i < count + 30; i++) {
+        for (let i = 0; i < count + 15; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const speed = 1.0 + Math.random() * 6.5;
+          const speed = 1.0 + Math.random() * 5.8;
           particlesRef.current.push({
             x: rocket.x,
             y: rocket.y,
             px: rocket.x,
             py: rocket.y,
             vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 0.8,
+            vy: Math.sin(angle) * speed - 0.7,
             color: '#ffd700',
             alpha: 1,
-            decay: 0.007 + Math.random() * 0.005,
-            size: 2.2,
-            gravity: 0.048,
-            friction: 0.975,
+            decay: 0.009 + Math.random() * 0.006,
+            size: 2.0,
+            gravity: 0.05,
+            friction: 0.973,
             flicker: true,
           });
         }
       } else if (rocket.shellType === 'crossette') {
         // Multi-splitting Crossette with Crackle Pops
-        for (let i = 0; i < 28; i++) {
-          const angle = (Math.PI * 2 * i) / 28 + (Math.random() - 0.5) * 0.18;
-          const speed = 4.2 + Math.random() * 3.5;
+        for (let i = 0; i < 20; i++) {
+          const angle = (Math.PI * 2 * i) / 20 + (Math.random() - 0.5) * 0.16;
+          const speed = 4.0 + Math.random() * 3.0;
           particlesRef.current.push({
             x: rocket.x,
             y: rocket.y,
@@ -210,20 +197,20 @@ export default function CinematicFireworks() {
             vy: Math.sin(angle) * speed,
             color: palette[i % palette.length],
             alpha: 1,
-            decay: 0.014,
-            size: 2.8,
-            gravity: 0.04,
-            friction: 0.978,
+            decay: 0.016,
+            size: 2.5,
+            gravity: 0.045,
+            friction: 0.975,
             flicker: false,
             isCrackle: true,
-            crackleTime: 20 + Math.floor(Math.random() * 14),
+            crackleTime: 18 + Math.floor(Math.random() * 10),
           });
         }
       } else {
         // Multi-Layer Peony / Chrysanthemum with Golden Strobe Pistil
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const speed = Math.pow(Math.random(), 0.45) * (rocket.size === 'large' ? 8.5 : 6.8);
+          const speed = Math.pow(Math.random(), 0.45) * (rocket.size === 'large' ? 7.8 : 6.2);
           particlesRef.current.push({
             x: rocket.x,
             y: rocket.y,
@@ -233,10 +220,10 @@ export default function CinematicFireworks() {
             vy: Math.sin(angle) * speed,
             color: palette[Math.floor(Math.random() * palette.length)],
             alpha: 1,
-            decay: 0.011 + Math.random() * 0.009,
-            size: 2.4,
-            gravity: 0.042,
-            friction: 0.976,
+            decay: 0.013 + Math.random() * 0.009,
+            size: 2.2,
+            gravity: 0.045,
+            friction: 0.974,
             flicker: Math.random() > 0.4,
           });
         }
@@ -244,11 +231,11 @@ export default function CinematicFireworks() {
     };
 
     // -----------------------------------------------------------------
-    // AUTOMATIC FIREWORKS ORCHESTRATION (Instant & Continuous Salvos)
+    // AUTOMATIC FIREWORKS ORCHESTRATION (Smooth Non-Overlapping Salvos)
     // -----------------------------------------------------------------
     const timeouts: NodeJS.Timeout[] = [];
 
-    // Instant Opening Salvo 1 (t=50ms): 2 Rockets soaring immediately!
+    // Salvo 1 (t=50ms): 2 Rockets soaring immediately
     timeouts.push(
       setTimeout(() => {
         launchRocket(width * 0.35, height * 0.26, 'willow', COLOR_PALETTES[0], 'large');
@@ -256,39 +243,29 @@ export default function CinematicFireworks() {
       }, 50)
     );
 
-    // Opening Salvo 2 (t=600ms): 2 Side Rockets
+    // Salvo 2 (t=800ms): 2 Flanking Rockets
     timeouts.push(
       setTimeout(() => {
         launchRocket(width * 0.20, height * 0.32, 'crossette', COLOR_PALETTES[3], 'medium');
         launchRocket(width * 0.80, height * 0.32, 'peony', COLOR_PALETTES[4], 'medium');
-      }, 600)
+      }, 800)
     );
 
-    // Salvo 3 (t=1400ms): 3 Fireworks across sky -> reaches 7 total automatic fireworks
+    // Salvo 3 (t=1900ms): 3 Rockets across sky
     timeouts.push(
       setTimeout(() => {
         launchRocket(width * 0.28, height * 0.28, 'peony', COLOR_PALETTES[2], 'large');
         launchRocket(width * 0.50, height * 0.18, 'ring', COLOR_PALETTES[0], 'large');
         launchRocket(width * 0.72, height * 0.28, 'willow', COLOR_PALETTES[5], 'large');
-      }, 1400)
+      }, 1900)
     );
 
-    // Salvo 4 (t=2500ms): 3 Grand Crossette & Willow fireworks
+    // Salvo 4 (t=3200ms): 2 Grand Finale Rockets before wish text
     timeouts.push(
       setTimeout(() => {
-        launchRocket(width * 0.22, height * 0.32, 'crossette', COLOR_PALETTES[1], 'medium');
-        launchRocket(width * 0.52, height * 0.22, 'willow', COLOR_PALETTES[0], 'large');
-        launchRocket(width * 0.78, height * 0.30, 'ring', COLOR_PALETTES[3], 'medium');
-      }, 2500)
-    );
-
-    // Salvo 5 (t=3600ms): 3 Fireworks preceding the wish reveal
-    timeouts.push(
-      setTimeout(() => {
-        launchRocket(width * 0.30, height * 0.25, 'peony', COLOR_PALETTES[4], 'large');
-        launchRocket(width * 0.50, height * 0.18, 'willow', COLOR_PALETTES[0], 'large');
-        launchRocket(width * 0.70, height * 0.25, 'crossette', COLOR_PALETTES[2], 'large');
-      }, 3600)
+        launchRocket(width * 0.32, height * 0.24, 'crossette', COLOR_PALETTES[1], 'large');
+        launchRocket(width * 0.68, height * 0.24, 'willow', COLOR_PALETTES[0], 'large');
+      }, 3200)
     );
 
     // Automatic Wish Reveal: Triggers itself smoothly at 4.6s
@@ -298,28 +275,31 @@ export default function CinematicFireworks() {
       }, 4600)
     );
 
-    // Continuous High-Frequency Automatic Fireworks in Background (2-3 rockets every 1.4s)
-    const interval = setInterval(() => {
-      const salvoCount = Math.random() > 0.4 ? 3 : 2;
-      for (let s = 0; s < salvoCount; s++) {
+    // Subtle Continuous Background Fireworks (2 rockets every 2.2s)
+    let interval: NodeJS.Timeout | null = null;
+    const intervalDelayTimeout = setTimeout(() => {
+      interval = setInterval(() => {
+        const randX1 = width * 0.2 + Math.random() * (width * 0.25);
+        const randX2 = width * 0.55 + Math.random() * (width * 0.25);
+        const randY = height * 0.16 + Math.random() * (height * 0.22);
+        launchRocket(randX1, randY, undefined, undefined, 'medium');
         setTimeout(() => {
-          const randX = width * 0.12 + (width * 0.76 * (s + 0.5)) / salvoCount + (Math.random() - 0.5) * (width * 0.12);
-          const randY = height * 0.14 + Math.random() * (height * 0.28);
-          const isBig = Math.random() > 0.45;
-          launchRocket(randX, randY, undefined, undefined, isBig ? 'large' : 'medium');
-        }, s * 160);
-      }
-    }, 1400);
+          launchRocket(randX2, randY, undefined, undefined, 'medium');
+        }, 220);
+      }, 2200);
+    }, 4800);
 
-    // Stop Automatic Fireworks exactly 4 seconds after animated wish appears (4.6s + 4.0s = 8.6s)
+    timeouts.push(intervalDelayTimeout);
+
+    // Stop Automatic Fireworks 4 seconds after wish appears (at 8.6s)
     timeouts.push(
       setTimeout(() => {
-        clearInterval(interval);
+        if (interval) clearInterval(interval);
       }, 8600)
     );
 
     // -----------------------------------------------------------------
-    // Buttery Smooth 60FPS / 120FPS GPU Render Loop (Zero GC, Zero shadowBlur)
+    // Buttery Smooth 60FPS / 120FPS GPU Render Loop (Zero GC, Single Draw Pass)
     // -----------------------------------------------------------------
     const render = () => {
       // 1. Semi-transparent clear for smooth motion trails
@@ -330,10 +310,10 @@ export default function CinematicFireworks() {
       // 2. Sky flash illumination
       if (skyFlashRef.current > 0.01) {
         ctx.fillStyle = skyFlashColorRef.current;
-        ctx.globalAlpha = skyFlashRef.current * 0.25;
+        ctx.globalAlpha = skyFlashRef.current * 0.22;
         ctx.fillRect(0, 0, width, height);
         ctx.globalAlpha = 1.0;
-        skyFlashRef.current *= 0.86;
+        skyFlashRef.current *= 0.85;
       }
 
       // Additive blending for luminous bright light
@@ -348,36 +328,36 @@ export default function CinematicFireworks() {
         r.y += r.vy;
         r.vy += 0.18; // Gravity slowing ascent
 
-        // Spawn ascending sparkle ember particles behind rocket
-        if (Math.random() > 0.25) {
+        // Spawn lightweight ascending sparkle ember
+        if (Math.random() > 0.5) {
           particlesRef.current.push({
-            x: r.x + (Math.random() - 0.5) * 4,
-            y: r.y + (Math.random() - 0.5) * 4,
+            x: r.x,
+            y: r.y,
             px: r.x,
             py: r.y,
-            vx: (Math.random() - 0.5) * 1.5,
-            vy: Math.random() * 2.2 + 0.8,
+            vx: (Math.random() - 0.5) * 1.2,
+            vy: Math.random() * 1.8 + 0.5,
             color: r.trailColor,
-            alpha: 0.9,
-            decay: 0.045,
-            size: 1.8,
+            alpha: 0.85,
+            decay: 0.05,
+            size: 1.6,
             gravity: 0.08,
             friction: 0.95,
             flicker: true,
           });
         }
 
-        // Draw crisp laser rocket tail line
+        // Draw laser rocket tail line
         ctx.beginPath();
         ctx.moveTo(r.px, r.py);
         ctx.lineTo(r.x, r.y);
         ctx.strokeStyle = r.trailColor;
-        ctx.lineWidth = 3.0;
+        ctx.lineWidth = 2.8;
         ctx.stroke();
 
         // Rocket bright head dot
         ctx.beginPath();
-        ctx.arc(r.x, r.y, 3.0, 0, Math.PI * 2);
+        ctx.arc(r.x, r.y, 2.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
         ctx.fill();
 
@@ -388,7 +368,7 @@ export default function CinematicFireworks() {
         }
       }
 
-      // 4. Update & Render Exploded Star Particles
+      // 4. Update & Render Exploded Star Particles (Single Pass)
       for (let i = particlesRef.current.length - 1; i >= 0; i--) {
         const p = particlesRef.current[i];
 
@@ -406,9 +386,9 @@ export default function CinematicFireworks() {
           p.crackleTime--;
           if (p.crackleTime <= 0) {
             p.isCrackle = false;
-            for (let c = 0; c < 4; c++) {
+            for (let c = 0; c < 3; c++) {
               const cAngle = Math.random() * Math.PI * 2;
-              const cSpeed = 2.0 + Math.random() * 2.5;
+              const cSpeed = 2.0 + Math.random() * 2.0;
               particlesRef.current.push({
                 x: p.x,
                 y: p.y,
@@ -418,8 +398,8 @@ export default function CinematicFireworks() {
                 vy: Math.sin(cAngle) * cSpeed,
                 color: '#ffffff',
                 alpha: 1,
-                decay: 0.04,
-                size: 1.8,
+                decay: 0.045,
+                size: 1.6,
                 gravity: 0.05,
                 friction: 0.95,
                 flicker: true,
@@ -433,8 +413,8 @@ export default function CinematicFireworks() {
           continue;
         }
 
-        // Draw particle streak from px,py to x,y
-        const starAlpha = p.flicker ? p.alpha * (0.65 + Math.random() * 0.35) : p.alpha;
+        // Fast particle streak
+        const starAlpha = p.flicker ? p.alpha * (0.7 + Math.random() * 0.3) : p.alpha;
         ctx.globalAlpha = starAlpha;
         ctx.beginPath();
         ctx.moveTo(p.px, p.py);
@@ -442,12 +422,6 @@ export default function CinematicFireworks() {
         ctx.strokeStyle = p.color;
         ctx.lineWidth = p.size;
         ctx.stroke();
-
-        // Center particle glow head
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 0.7, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
       }
 
       ctx.globalAlpha = 1.0;
@@ -476,7 +450,7 @@ export default function CinematicFireworks() {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('click', handleCanvasClick);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       timeouts.forEach((t) => clearTimeout(t));
     };
   }, []);
@@ -484,6 +458,9 @@ export default function CinematicFireworks() {
   // Audio & Shockwave choreography when wishing sequence activates
   useEffect(() => {
     if (!isWishingActive) return;
+
+    // Start dedicated piano celebration music for the Happy Birthday text reveal
+    soundFx.playWishMusic(0.5);
 
     // 1. Meteor Whoosh Sound as "Happy" plunges
     const t1 = setTimeout(() => {
@@ -502,10 +479,10 @@ export default function CinematicFireworks() {
       soundFx.playRopeTighten(0.85);
     }, 3600);
 
-    // 4. Fanfare for Center Shalini Reveal
+    // 4. Lazy-mount corner GIFs at t = 7.0s to completely avoid decoding lag during animation
     const t4 = setTimeout(() => {
-      soundFx.playCelebrationFanfare();
-    }, 6200);
+      setShowGifs(true);
+    }, 7000);
 
     return () => {
       clearTimeout(t1);
@@ -550,11 +527,11 @@ export default function CinematicFireworks() {
       </AnimatePresence>
 
       {/* ----------------------------------------------------------------- */}
-      {/* DRAMATIC CURSIVE WISH ANIMATION (Meteor Fall & Hanging String Drop) */}
+      {/* DRAMATIC CURSIVE WISH ANIMATION (Hardware Accelerated 120FPS)       */}
       {/* ----------------------------------------------------------------- */}
       <AnimatePresence>
         {isWishingActive && (
-          <div className="pointer-events-none relative z-30 flex flex-col items-center justify-center w-full max-w-5xl px-4 select-none">
+          <div className="pointer-events-none relative z-30 flex flex-col items-center justify-center w-full max-w-5xl px-10 sm:px-16 md:px-20 select-none">
             {/* Main "Happy Birthday" Cursive Composition */}
             <div className="relative flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-8 gap-y-2 py-4">
               {/* 1. "Happy" - Meteor Falling Slowly from Space to Bottom, Impacting, & Bouncing Back to Center */}
@@ -565,7 +542,6 @@ export default function CinematicFireworks() {
                   rotate: -24,
                   scale: 2.2,
                   opacity: 0,
-                  filter: 'blur(8px)',
                 }}
                 animate={{
                   y: ['-140vh', '58vh', '-10vh', '5vh', '0vh'],
@@ -573,13 +549,16 @@ export default function CinematicFireworks() {
                   rotate: [-24, 12, -4, 2, 0],
                   scale: [2.2, 1.25, 0.95, 1.05, 1],
                   opacity: [0, 1, 1, 1, 1],
-                  filter: ['blur(8px)', 'blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(0px)'],
                 }}
                 transition={{
                   delay: 0.3,
                   duration: 2.8,
                   times: [0, 0.52, 0.75, 0.88, 1],
                   ease: 'easeInOut',
+                }}
+                style={{
+                  willChange: 'transform, opacity',
+                  transform: 'translateZ(0)',
                 }}
                 className="relative flex items-center justify-center"
               >
@@ -613,6 +592,10 @@ export default function CinematicFireworks() {
                   times: [0, 0.65, 0.82, 0.92, 1],
                   ease: 'easeOut',
                 }}
+                style={{
+                  willChange: 'transform, opacity',
+                  transform: 'translateZ(0)',
+                }}
                 className="relative flex flex-col items-center justify-center -mt-2 sm:-mt-4 overflow-visible"
               >
                 {/* Physical Hanging String SVG from Ceiling */}
@@ -645,9 +628,13 @@ export default function CinematicFireworks() {
 
             {/* 3. "Shalini" Majestic Name Reveal on Centre of Screen (Starts after Happy Birthday both settle) */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.4, y: 35, filter: 'blur(8px)' }}
-              animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+              initial={{ opacity: 0, scale: 0.4, y: 35 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay: 6.2, duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                willChange: 'transform, opacity',
+                transform: 'translateZ(0)',
+              }}
               className="relative mt-2 sm:mt-4 flex flex-col items-center justify-center text-center w-full overflow-visible"
             >
               {/* Premium Crown & Stars Badge */}
@@ -669,128 +656,129 @@ export default function CinematicFireworks() {
                 transition={{ delay: 7.2, duration: 0.9 }}
                 className="text-base sm:text-xl md:text-2xl font-light text-amber-100/95 tracking-widest drop-shadow-md max-w-lg mt-1"
               >
-                Wishing you boundless joy, success, and brilliant adventures ahead!
+               Wishing you endless joy, incredible success, and a future filled with brilliant adventures and unforgettable moments!
+
               </motion.p>
             </motion.div>
 
             {/* ----------------------------------------------------------------- */}
-            {/* 4. BUTTERY SMOOTH CORNER CELEBRATION GIFS (Appears after 7s of wish) */}
+            {/* 4. BUTTERY SMOOTH CELEBRATION GIFS (Safe Margins, Zero Overlap)    */}
             {/* ----------------------------------------------------------------- */}
-            {/* Top-Left Corner GIF: Excited Happy Birthday */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.3, x: -40, y: -40, rotate: -15, filter: 'blur(8px)' }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                x: 0,
-                y: [0, -6, 0],
-                rotate: [-4, -2, -4],
-                filter: 'blur(0px)',
-              }}
-              transition={{
-                delay: 7.0,
-                duration: 1.2,
-                ease: [0.16, 1, 0.3, 1],
-                y: { duration: 3.6, repeat: Infinity, ease: 'easeInOut', delay: 8.2 },
-                rotate: { duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 8.2 },
-              }}
-              className="fixed top-4 left-4 sm:top-8 sm:left-8 z-35 pointer-events-none"
-            >
-              <div className="relative rounded-2xl border border-amber-400/40 bg-black/50 p-1.5 sm:p-2 backdrop-blur-md shadow-[0_0_25px_rgba(245,158,11,0.4)]">
-                <img
-                  src="/images/Excited Happy Birthday GIF.gif"
-                  alt="Excited Happy Birthday"
-                  className="h-24 w-24 sm:h-36 sm:w-36 md:h-44 md:w-44 rounded-xl object-cover"
-                />
-              </div>
-            </motion.div>
+            {showGifs && (
+              <>
+                {/* Top-Left Corner GIF: Excited Happy Birthday */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.3, x: -30, y: -30, rotate: -15 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: 0,
+                    y: [0, -5, 0],
+                    rotate: [-4, -2, -4],
+                  }}
+                  transition={{
+                    duration: 1.0,
+                    ease: [0.16, 1, 0.3, 1],
+                    y: { duration: 3.6, repeat: Infinity, ease: 'easeInOut' },
+                    rotate: { duration: 4.2, repeat: Infinity, ease: 'easeInOut' },
+                  }}
+                  style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+                  className="fixed top-3 left-2 sm:top-6 sm:left-6 md:top-8 md:left-8 z-35 pointer-events-none"
+                >
+                  <div className="relative rounded-xl sm:rounded-2xl border border-amber-400/40 bg-black/60 p-1 sm:p-1.5 md:p-2 backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+                    <img
+                      src="/images/Excited Happy Birthday GIF.gif"
+                      alt="Excited Happy Birthday"
+                      className="h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36 lg:h-44 lg:w-44 rounded-lg sm:rounded-xl object-cover"
+                    />
+                  </div>
+                </motion.div>
 
-            {/* Top-Right Corner GIF: Happy Birthday Party */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.3, x: 40, y: -40, rotate: 15, filter: 'blur(8px)' }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                x: 0,
-                y: [0, -7, 0],
-                rotate: [4, 2, 4],
-                filter: 'blur(0px)',
-              }}
-              transition={{
-                delay: 7.3,
-                duration: 1.2,
-                ease: [0.16, 1, 0.3, 1],
-                y: { duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 8.5 },
-                rotate: { duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 8.5 },
-              }}
-              className="fixed top-4 right-4 sm:top-8 sm:right-8 z-35 pointer-events-none"
-            >
-              <div className="relative rounded-2xl border border-pink-400/40 bg-black/50 p-1.5 sm:p-2 backdrop-blur-md shadow-[0_0_25px_rgba(244,63,94,0.4)]">
-                <img
-                  src="/images/Happy Birthday Party GIF.gif"
-                  alt="Happy Birthday Party"
-                  className="h-24 w-24 sm:h-36 sm:w-36 md:h-44 md:w-44 rounded-xl object-cover"
-                />
-              </div>
-            </motion.div>
+                {/* Top-Right Corner GIF: Happy Birthday Party */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.3, x: 30, y: -30, rotate: 15 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: 0,
+                    y: [0, -6, 0],
+                    rotate: [4, 2, 4],
+                  }}
+                  transition={{
+                    duration: 1.0,
+                    ease: [0.16, 1, 0.3, 1],
+                    y: { duration: 3.8, repeat: Infinity, ease: 'easeInOut' },
+                    rotate: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' },
+                  }}
+                  style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+                  className="fixed top-3 right-2 sm:top-6 sm:right-6 md:top-8 md:right-8 z-35 pointer-events-none"
+                >
+                  <div className="relative rounded-xl sm:rounded-2xl border border-pink-400/40 bg-black/60 p-1 sm:p-1.5 md:p-2 backdrop-blur-md shadow-[0_0_20px_rgba(244,63,94,0.4)]">
+                    <img
+                      src="/images/Happy Birthday Party GIF.gif"
+                      alt="Happy Birthday Party"
+                      className="h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36 lg:h-44 lg:w-44 rounded-lg sm:rounded-xl object-cover"
+                    />
+                  </div>
+                </motion.div>
 
-            {/* Bottom-Left Corner GIF: Happy Birthday Bday MOODMAN */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.3, x: -40, y: 40, rotate: -12, filter: 'blur(8px)' }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                x: 0,
-                y: [0, -6, 0],
-                rotate: [-3, -1, -3],
-                filter: 'blur(0px)',
-              }}
-              transition={{
-                delay: 7.6,
-                duration: 1.2,
-                ease: [0.16, 1, 0.3, 1],
-                y: { duration: 3.4, repeat: Infinity, ease: 'easeInOut', delay: 8.8 },
-                rotate: { duration: 4.0, repeat: Infinity, ease: 'easeInOut', delay: 8.8 },
-              }}
-              className="fixed bottom-36 left-3 sm:bottom-44 sm:left-6 md:bottom-52 md:left-8 z-35 pointer-events-none"
-            >
-              <div className="relative rounded-2xl border border-amber-300/40 bg-black/50 p-1.5 sm:p-2 backdrop-blur-md shadow-[0_0_25px_rgba(251,191,36,0.4)]">
-                <img
-                  src="/images/Happy Birthday Bday GIF by MOODMAN.gif"
-                  alt="Happy Birthday Moodman"
-                  className="h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36 rounded-xl object-cover"
-                />
-              </div>
-            </motion.div>
+                {/* Mid-Left Flank GIF: Happy Birthday Bday MOODMAN (Higher position) */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.3, x: -30, y: 30, rotate: -12 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: 0,
+                    y: [0, -5, 0],
+                    rotate: [-3, -1, -3],
+                  }}
+                  transition={{
+                    duration: 1.0,
+                    ease: [0.16, 1, 0.3, 1],
+                    y: { duration: 3.4, repeat: Infinity, ease: 'easeInOut' },
+                    rotate: { duration: 4.0, repeat: Infinity, ease: 'easeInOut' },
+                  }}
+                  style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+                  className="fixed top-[46%] -translate-y-1/2 left-2 sm:top-[50%] sm:left-4 md:top-[54%] md:left-6 z-35 pointer-events-none"
+                >
+                  <div className="relative rounded-xl sm:rounded-2xl border border-amber-300/40 bg-black/60 p-1 sm:p-1.5 md:p-2 backdrop-blur-md shadow-[0_0_20px_rgba(251,191,36,0.4)]">
+                    <img
+                      src="/images/Happy Birthday Bday GIF by MOODMAN.gif"
+                      alt="Happy Birthday Moodman"
+                      className="h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36 lg:h-44 lg:w-44 rounded-lg sm:rounded-xl object-cover"
+                    />
+                  </div>
+                </motion.div>
 
-            {/* Bottom-Right Corner GIF: Happy Birthday Party by Unscreen */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.3, x: 40, y: 40, rotate: 12, filter: 'blur(8px)' }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                x: 0,
-                y: [0, -7, 0],
-                rotate: [3, 1, 3],
-                filter: 'blur(0px)',
-              }}
-              transition={{
-                delay: 7.8,
-                duration: 1.2,
-                ease: [0.16, 1, 0.3, 1],
-                y: { duration: 3.7, repeat: Infinity, ease: 'easeInOut', delay: 9.0 },
-                rotate: { duration: 4.3, repeat: Infinity, ease: 'easeInOut', delay: 9.0 },
-              }}
-              className="fixed bottom-36 right-3 sm:bottom-44 sm:right-6 md:bottom-52 md:right-8 z-35 pointer-events-none"
-            >
-              <div className="relative rounded-2xl border border-purple-400/40 bg-black/50 p-1.5 sm:p-2 backdrop-blur-md shadow-[0_0_25px_rgba(192,132,252,0.4)]">
-                <img
-                  src="/images/Happy Birthday Party GIF by Unscreen.gif"
-                  alt="Happy Birthday Party Unscreen"
-                  className="h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36 rounded-xl object-cover"
-                />
-              </div>
-            </motion.div>
+                {/* Mid-Right Flank GIF: Happy Birthday Party by Unscreen (Higher position) */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.3, x: 30, y: 30, rotate: 12 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: 0,
+                    y: [0, -6, 0],
+                    rotate: [3, 1, 3],
+                  }}
+                  transition={{
+                    duration: 1.0,
+                    ease: [0.16, 1, 0.3, 1],
+                    y: { duration: 3.7, repeat: Infinity, ease: 'easeInOut' },
+                    rotate: { duration: 4.3, repeat: Infinity, ease: 'easeInOut' },
+                  }}
+                  style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+                  className="fixed top-[46%] -translate-y-1/2 right-2 sm:top-[50%] sm:right-4 md:top-[54%] md:right-6 z-35 pointer-events-none"
+                >
+                  <div className="relative rounded-xl sm:rounded-2xl border border-purple-400/40 bg-black/60 p-1 sm:p-1.5 md:p-2 backdrop-blur-md shadow-[0_0_20px_rgba(192,132,252,0.4)]">
+                    <img
+                      src="/images/Happy Birthday Party GIF by Unscreen.gif"
+                      alt="Happy Birthday Party Unscreen"
+                      className="h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36 lg:h-44 lg:w-44 rounded-lg sm:rounded-xl object-cover"
+                    />
+                  </div>
+                </motion.div>
+              </>
+            )}
           </div>
         )}
       </AnimatePresence>

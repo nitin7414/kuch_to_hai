@@ -66,6 +66,7 @@ export default function CakeRevealSection({ onReplay }: CakeRevealSectionProps) 
     if (isMatchIgnited) return;
 
     soundFx.playMatchstickStrike();
+    soundFx.playBackgroundMusic(0.35); // Play soothing Happy Birthday song till the end!
     setIsMatchIgnited(true);
     setRevealState('match_ignited');
 
@@ -151,6 +152,7 @@ export default function CakeRevealSection({ onReplay }: CakeRevealSectionProps) 
 
     // Image appears, then disappears with transition after 3.5s!
     photoHideTimeoutRef.current = setTimeout(() => {
+      soundFx.stopCelebrationFanfare();
       setRevealState('fireworks');
     }, 3500);
   };
@@ -167,34 +169,35 @@ export default function CakeRevealSection({ onReplay }: CakeRevealSectionProps) 
   return (
     <div className="relative flex h-screen w-full flex-col items-center justify-between overflow-hidden bg-[#07050f] select-none">
       {/* ---------------------------------------------------- */}
-      {/* 0. SLOW & CINEMATIC THEATRICAL CURTAIN RAISING        */}
+      {/* 0. INSTANT CURTAIN DROP WITH STRING & THEATRICAL LIFT */}
       {/* ---------------------------------------------------- */}
       <AnimatePresence>
         {!isCurtainComplete && (
           <motion.div
-            initial={{ y: '0%', scaleY: 1 }}
+            initial={{ y: '-100%' }}
             animate={{
-              y: '-108%',
-              scaleY: [1, 0.98, 0.95],
+              y: ['-100%', '0%', '0%', '-108%'],
             }}
             transition={{
-              duration: 2.8,
-              ease: [0.25, 1, 0.35, 1], // Cinema-grade slow easeOutCubic
-              delay: 0.35,
+              duration: 3.2,
+              times: [0, 0.22, 0.32, 1],
+              ease: [0.22, 1, 0.36, 1],
             }}
             onAnimationComplete={() => setIsCurtainComplete(true)}
             className="fixed inset-0 z-[100] pointer-events-none flex flex-col justify-end overflow-hidden select-none shadow-[0_35px_80px_rgba(0,0,0,0.95)]"
             style={{
               background: 'linear-gradient(180deg, #0e0208 0%, #1e0313 25%, #32051e 60%, #16020e 100%)',
-              transformOrigin: 'top center',
+              willChange: 'transform',
+              transform: 'translateZ(0)',
+              backfaceVisibility: 'hidden',
             }}
           >
             {/* Theatrical Velvet Pleats & Drapery Shadow Texture */}
             <div
-              className="absolute inset-0 opacity-50"
+              className="absolute inset-0 opacity-40 pointer-events-none"
               style={{
                 backgroundImage:
-                  'repeating-linear-gradient(90deg, rgba(0,0,0,0.8) 0px, transparent 20px, rgba(255,255,255,0.07) 40px, rgba(0,0,0,0.85) 60px)',
+                  'repeating-linear-gradient(90deg, rgba(0,0,0,0.8) 0px, transparent 20px, rgba(255,255,255,0.06) 40px, rgba(0,0,0,0.85) 60px)',
               }}
             />
 
@@ -203,9 +206,9 @@ export default function CakeRevealSection({ onReplay }: CakeRevealSectionProps) 
 
             {/* Cinematic Stage Light Leak Beam under rising curtain */}
             <motion.div
-              initial={{ opacity: 0.3, scaleX: 0.8 }}
-              animate={{ opacity: [0.3, 0.9, 0], scaleX: [0.8, 1.2, 1] }}
-              transition={{ duration: 2.8, delay: 0.35, ease: 'easeInOut' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0, 0.85, 0] }}
+              transition={{ duration: 3.2, times: [0, 0.32, 0.65, 1], ease: 'easeInOut' }}
               className="absolute bottom-0 left-1/2 -translate-x-1/2 h-16 w-full max-w-4xl bg-gradient-to-t from-amber-400/30 via-rose-500/15 to-transparent blur-xl pointer-events-none"
             />
 

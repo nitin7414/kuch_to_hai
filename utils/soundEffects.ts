@@ -124,13 +124,40 @@ class SoundEffectsManager {
     });
   }
 
+  private cakeRevealAudio: HTMLAudioElement | null = null;
+
   /**
-   * Play celebration fanfare on cake reveal
+   * Play celebration fanfare on cake / photo reveal (cake-reveal.mp3)
    */
   public playCelebrationFanfare() {
-    this.playSound('cake-reveal', 0.95, () => {
+    try {
+      this.stopCelebrationFanfare();
+      this.cakeRevealAudio = new Audio('/audio/cake-reveal.mp3');
+      this.cakeRevealAudio.volume = 0.95;
+      const playPromise = this.cakeRevealAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          audioSynth.playCelebrationFanfare();
+        });
+      }
+    } catch {
       audioSynth.playCelebrationFanfare();
-    });
+    }
+  }
+
+  /**
+   * Stop cake-reveal sound immediately (e.g., when the photo view finishes)
+   */
+  public stopCelebrationFanfare() {
+    if (this.cakeRevealAudio) {
+      try {
+        this.cakeRevealAudio.pause();
+        this.cakeRevealAudio.currentTime = 0;
+      } catch {
+        // safe
+      }
+      this.cakeRevealAudio = null;
+    }
   }
 
   /**
@@ -189,6 +216,89 @@ class SoundEffectsManager {
    */
   public playFireworkWillowShimmer() {
     audioSynth.playFireworkWillowShimmer();
+  }
+
+  private bgMusic: HTMLAudioElement | null = null;
+  private isMusicPlaying: boolean = false;
+
+  private wishMusic: HTMLAudioElement | null = null;
+  private isWishMusicPlaying: boolean = false;
+
+  /**
+   * Play soothing Happy Birthday background music (twisterium-happy-birthday-482411.mp3)
+   * Plays continuously in loop with soothing, gentle volume during cake reveal.
+   */
+  public playBackgroundMusic(volume: number = 0.35) {
+    if (typeof window === 'undefined') return;
+    if (this.isMusicPlaying && this.bgMusic) return;
+
+    try {
+      if (!this.bgMusic) {
+        this.bgMusic = new Audio('/audio/twisterium-happy-birthday-482411.mp3');
+        this.bgMusic.loop = true;
+        this.bgMusic.preload = 'auto';
+      }
+      this.bgMusic.volume = Math.min(1, Math.max(0.05, volume));
+      const playPromise = this.bgMusic.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            this.isMusicPlaying = true;
+          })
+          .catch(() => {
+            // Handled gracefully if browser policy requires user gesture
+          });
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  public stopBackgroundMusic() {
+    if (this.bgMusic) {
+      this.bgMusic.pause();
+      this.isMusicPlaying = false;
+    }
+  }
+
+  /**
+   * Play dedicated Piano Wish background music (/audio/tunetank-piano-logo-484286.mp3)
+   * when Happy Birthday text begins to appear.
+   * Replaces any existing background music cleanly.
+   */
+  public playWishMusic(volume: number = 0.45) {
+    if (typeof window === 'undefined') return;
+
+    // Stop previous background music
+    this.stopBackgroundMusic();
+
+    try {
+      if (!this.wishMusic) {
+        this.wishMusic = new Audio('/audio/tunetank-piano-logo-484286.mp3');
+        this.wishMusic.loop = true;
+        this.wishMusic.preload = 'auto';
+      }
+      this.wishMusic.volume = Math.min(1, Math.max(0.05, volume));
+      const playPromise = this.wishMusic.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            this.isWishMusicPlaying = true;
+          })
+          .catch(() => {
+            // Handled gracefully if browser policy requires user gesture
+          });
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  public stopWishMusic() {
+    if (this.wishMusic) {
+      this.wishMusic.pause();
+      this.isWishMusicPlaying = false;
+    }
   }
 }
 
