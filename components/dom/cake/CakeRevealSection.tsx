@@ -136,7 +136,7 @@ export default function CakeRevealSection({ onReplay }: CakeRevealSectionProps) 
     }, 400);
   };
 
-  // 3. User clicked: "Haan kr diya" -> Show photo for 3-4 seconds then disappear with transition
+  // 3. User clicked: "Haan kr diya" -> Show photo for 10 seconds then disappear with transition
   const handleConfirmedBlown = () => {
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     if (confirmTimeoutRef.current) clearTimeout(confirmTimeoutRef.current);
@@ -150,11 +150,11 @@ export default function CakeRevealSection({ onReplay }: CakeRevealSectionProps) 
       soundFx.playCelebrationFanfare();
     }, 250);
 
-    // Image appears, then disappears with transition after 3.5s!
+    // Image appears, then disappears with transition after 10 seconds!
     photoHideTimeoutRef.current = setTimeout(() => {
       soundFx.stopCelebrationFanfare();
       setRevealState('fireworks');
-    }, 3500);
+    }, 10000);
   };
 
   // 4. User clicked: "Nahi, kr deti hoo" -> Restart timer & loop until "Haan kr diya" is clicked
