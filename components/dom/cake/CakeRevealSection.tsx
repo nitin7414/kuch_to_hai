@@ -154,7 +154,7 @@ export default function CakeRevealSection({ onReplay }: CakeRevealSectionProps) 
     photoHideTimeoutRef.current = setTimeout(() => {
       soundFx.stopCelebrationFanfare();
       setRevealState('fireworks');
-    }, 10000);
+    }, 8000);
   };
 
   // 4. User clicked: "Nahi, kr deti hoo" -> Restart timer & loop until "Haan kr diya" is clicked
