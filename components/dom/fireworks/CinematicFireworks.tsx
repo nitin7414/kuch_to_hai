@@ -644,7 +644,7 @@ export default function CinematicFireworks() {
                   style={{ fontFamily: 'var(--font-cursive), cursive' }}
                   className="inline-block px-8 sm:px-12 py-3 sm:py-5 overflow-visible text-6xl sm:text-8xl md:text-9xl font-normal bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_0_45px_rgba(255,215,0,0.95)] leading-normal tracking-wide select-none"
                 >
-                  Shalini
+                  Shalini ji
                 </span>
                 <Stars className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-amber-300 animate-pulse drop-shadow-[0_0_15px_#f59e0b] shrink-0" />
               </div>
